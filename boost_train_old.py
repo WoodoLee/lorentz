@@ -12,8 +12,6 @@ import boost_util as boost
 from matplotlib import pyplot as plt
 from matplotlib import cm
 import argparse
-import pretty_errors
-from rich import print
 
 
 parser = argparse.ArgumentParser(description='Lorentz Boosting Example')
@@ -52,28 +50,14 @@ class NetMain(nn.Module):
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
-        # print(x.shape)
         x = F.relu(self.fc2(x))
+        print(x)
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
         
-        return F.log_softmax(x, dim = 0)
+        return F.log_softmax(x, dim = 1)
 
 class NetBoost(nn.Module):
-    def __init__(self):
-        super(NetBoost, self).__init__()
-        self.fc1 = nn.Linear(512, 512)
-        self.fc2 = nn.Linear(512, 512)
-
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.dropout(x, training=self.training)
-        x = self.fc2(x)
-        
-        return F.log_softmax(x, dim = 0)
-
-class NetLast(nn.Module):
     def __init__(self):
         super(NetBoost, self).__init__()
         self.fc1 = nn.Linear(512, 512)
@@ -154,8 +138,8 @@ criterion = criterion.to(device)
 optimizer = optim.SGD(modelMain.parameters(), lr=0.001, momentum=0.9)
 # optimizer2 = optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
 # optimizer = optimizer.to(device)
-# print(modelMain)
-# print(modelBoost)
+print(modelMain)
+print(modelBoost)
 # 학습 시작
 print(torch.cuda.get_device_name(0))
 
@@ -166,75 +150,22 @@ for epoch in range(100):
         # 계산 그래프 구성
         # train_x, train_y = Variable(train_x), Variable(train_y)
         # print(train_x.shape)
-        # train_x = torch.transpose(train_x, 0, 1)
+        train_x = torch.transpose(train_x, 0, 1)
         # print(train_x.shape)
         # print(mB.shape)
         train_x = train_x.float().to(device)
         train_y = train_y.float().to(device)
-        # train_t = train_T.float().to(device)
-        
-        # print(train_xt)
-        output = modelMain(train_x)
-        # print(output)
+        train_t = train_T.float().to(device)
 
-        # train_t = torch.zeros([102, ])
-        # train_t =  torch.unsqueeze(train_t, 1)
-        # train_t = train_t.float().to(device)
+        print(train_x.shape)
+        print(train_t.shape)
+        print(train_t.shape)
+        print(train_t)
         
-        # train_xt = torch.cat((output,train_t),1)
-        # print(train_xt)
-        # print(train_xt.shape)
+        train_tx = torch.cat([train_x,train_t])
         
-        #########        
-        # boost vector
-        ########
-        
-        # normalization
-        scalerOutput = boost.tensorScaler(output)
-        # print(output)
-        # print(normOutput)
-        # print("============ norm ===========")
-        # print(scalerOutput)
-        train_b = modelBoost(scalerOutput)
-        print("============ output ===========")
-        print(scalerOutput.shape)
-        print("============ boost ===========")
-        print(train_b.shape)
-        print("============ boost Scaler ===========")
-        normBoost = torch.linalg.norm(train_b, dim=1)
-        # print(normBoost)
-        # print(train_b)
-        # print(normBoost.shape)
-        
-        for i in range (0, len(normBoost)):
-        # for i in range (0, 1):
-            # print(i)
-            # print(train_b[i,: ].size())
-            # print(normBoost[i])
-            print("=======")
-            norm_b = torch.div(train_b[i,: ] ,normBoost[i])
-            # print(norm_b.shape)
-            print(len(norm_b))
-            norm_b_mag = torch.linalg.norm(norm_b)
-            print(norm_b_mag)
-            mB = boost.mBoost(norm_b,norm_b_mag, len(norm_b) )
-            print(mB)
-            # boost.mBoost(norm_b,  ,len(norm_b))
-            # print(norm_b.size())
-            # print(len(norm_b))
-            # print(norm_b)
-            # print(norm_b.size())
-            # mBoost(norm_b, norm_b_mag, )
-            # print(norm_b)
-            # print(norm_b_mag)
-
-
-        
-
-
-        # print(torch.norm(normOutput))
+        output = model(train_tx)
         loss = criterion(output, torch.max(train_y, 1)[1])
-        # mB = 
         # print(loss)
         # 오차계산
         # loss = criterion(output, train_y)

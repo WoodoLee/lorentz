@@ -7,6 +7,12 @@ import pretty_errors
 from matplotlib import rc
 from rich import print
 from matplotlib import cm
+import torch
+
+use_cuda = torch.cuda.is_available()
+
+device = torch.device("cuda" if use_cuda else "cpu")
+
 
 ################
 #Boosting vector
@@ -27,11 +33,14 @@ def vBoost(vecDim):
 def mBoost(vecBoost, vecBoostMag , vecDim):
   matDim = vecDim+1
   matBoost = np.zeros(shape = (matDim,matDim))
-  c = 1.
-  if vecBoostMag == 0:
-    vecBoostMag = 1
+  matBoost = torch.from_numpy(matBoost)
+  matBoost = matBoost.to(device)
+  print("================== Debug ==============")
+  c = 3.
+  # if vecBoostMag == 1:
+  #   vecBoostMag = 0.
   beta = vecBoostMag / c
-  gamma = 1 / np.sqrt(1 - beta**2)
+  gamma = 1 / torch.sqrt(1 - beta**2)
   matBoost[0,0] = gamma
   print("beta = ", beta)
   print("gamma = ", gamma)
@@ -76,9 +85,11 @@ def lorentzInvar(input, dt):
 
 
 #####
-# vec normalization 0 - 1
+# tensor normalization 0 - 1
 #####
 
-def vecnormal(input):
-  normalized = (input-min(input))/(max(input)-min(input))
+def tensorScaler(input):
+  # print("==========Scaler=========")
+  # print(torch.norm(input))
+  normalized = (input-torch.min(input))/(torch.max(input)- torch.min(input))
   return normalized
