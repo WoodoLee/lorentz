@@ -35,15 +35,15 @@ def mBoost(vecBoost, vecBoostMag , vecDim):
   matBoost = np.zeros(shape = (matDim,matDim))
   matBoost = torch.from_numpy(matBoost)
   matBoost = matBoost.to(device)
-  print("================== Debug ==============")
+  # print("================== Debug ==============")
   c = 3.
   # if vecBoostMag == 1:
   #   vecBoostMag = 0.
-  beta = vecBoostMag / c
+  beta = vecBoostMag / c 
   gamma = 1 / torch.sqrt(1 - beta**2)
   matBoost[0,0] = gamma
-  print("beta = ", beta)
-  print("gamma = ", gamma)
+  # print("beta = ", beta)
+  # print("gamma = ", gamma)
   # if vecBoostMag == 0:
     # vecBoostMag = 1
   for i in range (1, matDim):
@@ -55,6 +55,28 @@ def mBoost(vecBoost, vecBoostMag , vecDim):
       matBoost[j,i] = (gamma - 1) * (vecBoost[i-1] * vecBoost[j-1]) / (vecBoostMag**2)
   return matBoost
 
+def tBoost(vecBoost, matBoost, c):
+  vecBoostMag = torch.linalg.norm(vecBoost)
+  # print(vecBoostMag)
+  matDim = len(vecBoost)+1
+  beta = vecBoostMag / c
+  beta.to(device)
+  gamma = 1 / torch.sqrt(1 - beta**2)
+  gamma.to(device)
+  # matBoost[0,0] = gamma
+  matBoost[0][0] = gamma
+  # print("beta = ", beta)
+  # print("gamma = ", gamma)
+  # if vecBoostMag == 0:
+    # vecBoostMag = 1
+  for i in range (1, matDim):
+    matBoost[i,i] = 1 + (gamma -1) * ( vecBoost[i-1] / vecBoostMag )**2 
+    matBoost[0,i] = - gamma * vecBoost[i-1] / c
+    matBoost[i,0] = - gamma * vecBoost[i-1] / c
+    for j in range(i+1, matDim):
+      matBoost[i,j] = (gamma - 1) * (vecBoost[i-1] * vecBoost[j-1]) / (vecBoostMag**2)
+      matBoost[j,i] = (gamma - 1) * (vecBoost[i-1] * vecBoost[j-1]) / (vecBoostMag**2)
+  return matBoost
 
 #####
 #TSNE
@@ -93,3 +115,12 @@ def tensorScaler(input):
   # print(torch.norm(input))
   normalized = (input-torch.min(input))/(torch.max(input)- torch.min(input))
   return normalized
+
+
+#####
+# loss
+#####
+
+# def lossBoost(output_x, output_t , truth):
+  
+
