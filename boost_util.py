@@ -46,6 +46,29 @@ def mBoost(vecBoost, vecBoostMag , vecDim):
       matBoost[j,i] = (gamma - 1) * (vecBoost[i-1] * vecBoost[j-1]) / (vecBoostMag**2)
   return matBoost
 
+def tBoost(vecBoost):
+  matDim = len(vecBoost)
+  vecBoostMag = vecBoost
+  matBoost = torch.cuda.FloatTensor(matDim, matDim).fill_(0)
+  c = 1.
+  if vecBoostMag == 0:
+    vecBoostMag = 1
+  beta = vecBoostMag / c
+  gamma = 1 / np.sqrt(1 - beta**2)
+  matBoost[0,0] = gamma
+  print("beta = ", beta)
+  print("gamma = ", gamma)
+  # if vecBoostMag == 0:
+    # vecBoostMag = 1
+  for i in range (1, matDim):
+    matBoost[i,i] = 1 + (gamma -1) * ( vecBoost[i-1] / vecBoostMag )**2 
+    matBoost[0,i] = - gamma * vecBoost[i-1] 
+    matBoost[i,0] = - gamma * vecBoost[i-1]
+    for j in range(i+1, matDim):
+      matBoost[i,j] = (gamma - 1) * (vecBoost[i-1] * vecBoost[j-1]) / (vecBoostMag**2)
+      matBoost[j,i] = (gamma - 1) * (vecBoost[i-1] * vecBoost[j-1]) / (vecBoostMag**2)
+  return matBoost
+
 
 #####
 #TSNE

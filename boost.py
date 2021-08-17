@@ -91,8 +91,6 @@ def vecnormal(input):
   return normalized
 
 
-
-
 #####
 # rms
 #####
